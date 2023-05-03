@@ -7,8 +7,8 @@
 class Event {
 public:
     Event(
-        const std::chrono::year_month_day& t, 
-        const std::string& c, 
+        const std::chrono::year_month_day& t,
+        const std::string& c,
         const std::string& d) :
             timestamp(t), category(c), description(d) {
 
@@ -21,7 +21,7 @@ public:
 
     // Overloaded operator for output stream use.
     // Needs to be `friend`, not a method in this class.
-    friend std::ostream& operator<<(std::ostream& os, const Event& event);    
+    friend std::ostream& operator<<(std::ostream& os, const Event& event);
 
 private:
     std::chrono::year_month_day timestamp;

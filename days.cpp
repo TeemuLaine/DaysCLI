@@ -179,9 +179,17 @@ int main(int argc, char *argv[])
 
     // Construct a path for the events file.
     // If the user's home directory can't be determined, give up.
-    string homeDirectoryString = getHomeDirectory();
+    std::string homeDirectoryString = getHomeDirectory();
     if (homeDirectoryString == "")
         return 1;
+
+    // Using ternary operators variables can be assigned with argv[] values depending on the value of
+    // argc without repeating if statements. Default assignment is an empty string
+    std::string command = (argc > 1) ? std::string(argv[1]) : "";
+    std::string option1 = (argc > 2) ? std::string(argv[2]) : "";
+    std::string parameter1 = (argc > 3) ? std::string(argv[3]) : "";
+    std::string option2 = (argc > 4) ? std::string(argv[4]) : "";
+    std::string parameter2 = (argc > 5) ? std::string(argv[5]) : "";
 
     namespace fs = std::filesystem; // save a little typing
     fs::path daysPath{homeDirectoryString};
@@ -233,34 +241,83 @@ int main(int argc, char *argv[])
 
     if (argc > 1)
     {
-        if (std::string(argv[1]) == "list")
+        if (command == "list")
         {
             for (auto &event : events)
             {
                 const auto delta = (chrono::sys_days{event.getTimestamp()} - today).count();
                 if (argc > 2)
                 {
-                    if (std::string(argv[2]) == "--today" && delta != 0)
-                        continue; // if both are true, keep going, otherwise skip iteration.
+                    if (option1 == "--today" && delta != 0)
+                        continue; // if both are true, skip one iteration, otherwise keep going.
 
-                    else if (std::string(argv[2]) == "--before-date")
+                    else if (option1 == "--before-date")
+                    {
+                        if (argc > 3 && argc != 5)
+                        {
+                            if (argc == 6 && option2 == "--after-date" && getDateFromString(parameter2) > event.getTimestamp())
+                                continue;
+
+                            else if (getDateFromString(parameter1) <= event.getTimestamp())
+                            {
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            std::cout << "Missing date." << std::endl;
+                            break;
+                        }
+                    }
+                    else if (option1 == "--after-date")
                     {
                         if (argc > 3)
                         {
-                            if(getDateFromString(std::string(argv[3])) <= event.getTimestamp())
-                            continue;
+                            if (getDateFromString(parameter1) > event.getTimestamp())
+                                continue;
                         }
                         else
-                            std::cout << "Missing date.";
-                    }
-                    else if(std::string(argv[2]) == "--after-date")
-                    if (argc > 3)
                         {
-                            if(getDateFromString(std::string(argv[3])) > event.getTimestamp())
+                            std::cout << "Missing date." << std::endl;
+                            break;
+                        }
+                    }
+                    else if (option1 == "--date")
+                    {
+                        if (getDateFromString(parameter1) != event.getTimestamp())
                             continue;
+                    }
+                    else if (option1 == "--categories")
+                    {
+                        bool multipleCategories = (parameter1.find(',') != std::string::npos) ? true : false;
+                        if (!multipleCategories)
+                        {
+                            if ((parameter1 != event.getCategory() && option2 != "--exclude") || (option2 == "--exclude" && parameter1 == event.getCategory()))
+                            {
+                                continue;
+                            }
                         }
                         else
-                            std::cout << "Missing date.";
+                        {
+                            std::string category;
+                            std::stringstream catStream(parameter1);
+                            bool categoryFound = false;
+
+                            // Separate with getline and look for a match
+                            while (std::getline(catStream, category, ','))
+                            {
+                                if (category == event.getCategory())
+                                    categoryFound = true;
+                            }
+                            if ((option2 != "--exclude" && !categoryFound) || (option2 == "--exclude" && categoryFound))
+                                continue;
+                        }
+                    }
+                    else if (option1 == "--no-category")
+                    {
+                        if (event.getCategory() != "")
+                            continue;
+                    }
                 }
 
                 ostringstream line;
@@ -283,8 +340,12 @@ int main(int argc, char *argv[])
                 newline();
             }
         }
-        else std::cout << "Invalid argument." << std::endl;
+        else if(command == "add"){
+            // ....
+        }
+        else
+            std::cout << "Invalid argument." << std::endl;
     }
 
-return 0;
+    return 0;
 }
