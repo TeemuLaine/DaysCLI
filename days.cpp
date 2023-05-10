@@ -340,35 +340,49 @@ int main(int argc, char *argv[])
                 newline();
             }
         }
-        else if(command == "add" && (argc == 6 || argc == 8)){
+        else if (command == "add" && (argc == 6 || argc == 8))
+        {
             std::ofstream file(eventsPath, std::ios::app);
-            if(option1 == "--category" && argc == 6 && option2 == "--description"){
+            if (option1 == "--category" && argc == 6 && option2 == "--description")
+            {
                 file << getStringFromDate(today) << "," << parameter1 << "," << parameter2 << "\n";
             }
-            else if(option1 == "--date" && option2 == "--category" && std::string(argv[6]) == "--description"){
+            else if (option1 == "--date" && option2 == "--category" && std::string(argv[6]) == "--description")
+            {
                 std::string parameter3 = std::string(argv[7]);
                 file << parameter1 << "," << parameter2 << "," << parameter3 << "\n";
             }
             else
-            std::cout << "Invalid options" << std::endl;
+                std::cout << "Invalid options" << std::endl;
             file.close();
         }
-        else if(command == "delete"){
+        else if (command == "delete" && argc > 2)
+        {
             std::fstream file(eventsPath);
             std::string tempFilePath = homeDirectoryString + "/.days/tempFile.csv";
             std::ofstream tempFile(tempFilePath);
             std::string text;
-            while (std::getline(file, text)){
-                if(option1 == "--date" && text.find(parameter1) != std::string::npos){
+            while (std::getline(file, text))
+            {
+                if (option1 == "--date" && text.find(parameter1) != std::string::npos)
+                {
                     continue;
                 }
                 tempFile << text << std::endl;
             }
             file.close();
             tempFile.close();
-            std::remove(eventsPath.c_str());
-            std::rename(tempFilePath.c_str(), eventsPath.c_str());
+            if (std::string(argv[argc - 1]) != "--dry-run")
+            {
+                std::remove(eventsPath.c_str());
+                std::rename(tempFilePath.c_str(), eventsPath.c_str());
             }
+            else
+            {
+                std::cout << "Dry run, would delete:" << std::endl;
+                std::remove(tempFilePath.c_str());
+            }
+        }
         else
             std::cout << "Invalid command." << std::endl;
     }
