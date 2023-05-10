@@ -340,12 +340,37 @@ int main(int argc, char *argv[])
                 newline();
             }
         }
-        else if(command == "add"){
-            // ....
+        else if(command == "add" && (argc == 6 || argc == 8)){
+            std::ofstream file(eventsPath, std::ios::app);
+            if(option1 == "--category" && argc == 6 && option2 == "--description"){
+                file << getStringFromDate(today) << "," << parameter1 << "," << parameter2 << "\n";
+            }
+            else if(option1 == "--date" && option2 == "--category" && std::string(argv[6]) == "--description"){
+                std::string parameter3 = std::string(argv[7]);
+                file << parameter1 << "," << parameter2 << "," << parameter3 << "\n";
+            }
+            else
+            std::cout << "Invalid options" << std::endl;
+            file.close();
         }
+        else if(command == "delete"){
+            std::fstream file(eventsPath);
+            std::string tempFilePath = homeDirectoryString + "/.days/tempFile.csv";
+            std::ofstream tempFile(tempFilePath);
+            std::string text;
+            while (std::getline(file, text)){
+                if(option1 == "--date" && text.find(parameter1) != std::string::npos){
+                    continue;
+                }
+                tempFile << text << std::endl;
+            }
+            file.close();
+            tempFile.close();
+            std::remove(eventsPath.c_str());
+            std::rename(tempFilePath.c_str(), eventsPath.c_str());
+            }
         else
-            std::cout << "Invalid argument." << std::endl;
+            std::cout << "Invalid command." << std::endl;
     }
-
     return 0;
 }
