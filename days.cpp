@@ -182,7 +182,7 @@ void listEvents(std::vector<Event> events, std::chrono::sys_days today, int argc
                 {
                     if (argc > 3 && argc != 5)
                     {
-                        if (argc == 6 && option2 == "--after-date" && getDateFromString(parameter2) > event.getTimestamp())
+                        if (argc == 6 && option2 == "--after-date" && getDateFromString(parameter1) <= event.getTimestamp() && getDateFromString(parameter2) > event.getTimestamp())
                             continue;
 
                         else if (getDateFromString(parameter1) <= event.getTimestamp())
@@ -192,7 +192,7 @@ void listEvents(std::vector<Event> events, std::chrono::sys_days today, int argc
                     }
                     else
                     {
-                        std::cout << "Missing date." << std::endl;
+                        std::cout << "Invalid parameters." << std::endl;
                         break;
                     }
                 }
@@ -205,8 +205,22 @@ void listEvents(std::vector<Event> events, std::chrono::sys_days today, int argc
                     }
                     else
                     {
-                        std::cout << "Missing date." << std::endl;
+                        std::cout << "Invalid parameters." << std::endl;
                         break;
+                    }
+                }
+                else if (option1 == "--description")
+                {
+                    int counter = 0;
+                    for (int i = 0; i < parameter1.length(); i++)
+                    {
+                        if (parameter1[i] == event.getDescription()[i])
+                        {
+                            counter++;
+                        }
+                    }
+                    if(counter != parameter1.length()){
+                        continue;
                     }
                 }
                 else if (option1 == "--date")
@@ -317,7 +331,6 @@ void deleteEvents(std::vector<Event> events, std::chrono::sys_days today, std::f
     while (std::getline(file, text))
     {
         line++;
-        std::cout << text << std::endl;
         if (option1 == "--date" && option2 == "--category" && option3 == "--description")
         {
             if (text.find(parameter1) != std::string::npos && text.find(parameter2) != std::string::npos)
@@ -346,10 +359,45 @@ void deleteEvents(std::vector<Event> events, std::chrono::sys_days today, std::f
         {
             continue;
         }
+        else if (option1 == "--description")
+        {
+            int descStart = 0;
+            int counter = 0;
+            for (int i = 0; i < text.length(); i++)
+            { // Different method for finding description start, finding second comma
+                if (text[i] = ',')
+                {
+                    counter++;
+                }
+                if (counter == 2)
+                {
+                    descStart = i + 1;
+                    counter = 0;
+                    break;
+                }
+            }
+            for (int i = descStart; i < text.length(); i++)
+            {
+                if (parameter1[i - descStart] == text[i])
+                {
+                    counter++;
+                }
+            }
+            if (counter == parameter1.length())
+            {
+                continue;
+            }
+        }
         else if (option1 == "--all" && line != 1)
         {
             continue;
         }
+        else if (option1 != "--all" && option1 != "--date" && option1 != "--description")
+        {
+            std::cout << "Invalid parameters" << std::endl;
+            return;
+        }
+
         tempFile << text << std::endl;
     }
     file.close();
